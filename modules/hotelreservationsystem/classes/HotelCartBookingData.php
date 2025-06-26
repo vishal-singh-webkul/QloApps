@@ -939,7 +939,7 @@ class HotelCartBookingData extends ObjectModel
                 }
             }
         } else {
-            $errors[] = $objModule->l('No booking found in the cart.', 'HotelOrderRestrictDate');
+            $errors[] = $objModule->l('No booking found in the cart.', 'HotelCartBookingData');
         }
 
         // validate service products if not active, deleted or not associated to a specific room type/hotels then remove from cart
@@ -1079,7 +1079,7 @@ class HotelCartBookingData extends ObjectModel
                                                 $context->language->id
                                             );
                                             $errors[] = sprintf(
-                                                $objModule->l('You can not book rooms for hotel "%s" after date %s. Please remove rooms from %s - %s to proceed.', 'HotelOrderRestrictDate'),
+                                                $objModule->l('You can not book rooms for hotel "%s" after date %s. Please remove rooms from %s - %s to proceed.', 'HotelCartBookingData'),
                                                 $objHotelBranchInformation->hotel_name,
                                                 Tools::displayDate($maxOrderDate),
                                                 Tools::displayDate($roomData['date_from']),
@@ -1097,7 +1097,7 @@ class HotelCartBookingData extends ObjectModel
                                                 $context->language->id
                                             );
                                             $errors[] = sprintf(
-                                                $objModule->l('You can not book rooms for hotel "%s" before date %s. Please remove rooms from %s - %s to proceed.', 'HotelOrderRestrictDate'),
+                                                $objModule->l('You can not book rooms for hotel "%s" before date %s. Please remove rooms from %s - %s to proceed.', 'HotelCartBookingData'),
                                                 $objHotelBranchInformation->hotel_name,
                                                 Tools::displayDate($minOrderDate),
                                                 Tools::displayDate($roomData['date_from']),
@@ -1123,15 +1123,15 @@ class HotelCartBookingData extends ObjectModel
                                         }
                                     }
                                     if ($isRoomBooked) {
-                                        $errors[] = sprintf($objModule->l('The Room "%s" has been booked by another customer from "%s" to "%s" Please remove rooms from cart to proceed', 'HotelOrderRestrictDate'), $product['name'], date('d-m-Y', strtotime($roomData['date_from'])), date('d-m-Y', strtotime($roomData['date_to'])));
+                                        $errors[] = sprintf($objModule->l('The Room "%s" has been booked by another customer from "%s" to "%s" Please remove rooms from cart to proceed', 'HotelCartBookingData'), $product['name'], date('d-m-Y', strtotime($roomData['date_from'])), date('d-m-Y', strtotime($roomData['date_to'])));
                                     } else {
-                                        $errors[] = sprintf($objModule->l('The Room "%s" is no longer available from "%s" to "%s" Please remove rooms from cart to proceed', 'HotelOrderRestrictDate'), $product['name'], date('d-m-Y', strtotime($roomData['date_from'])), date('d-m-Y', strtotime($roomData['date_to'])));
+                                        $errors[] = sprintf($objModule->l('The Room "%s" is no longer available from "%s" to "%s" Please remove rooms from cart to proceed', 'HotelCartBookingData'), $product['name'], date('d-m-Y', strtotime($roomData['date_from'])), date('d-m-Y', strtotime($roomData['date_to'])));
                                     }
                                 }
                             }
                         }
                     } else {
-                        $errors[] = $objModule->l('You can not book rooms from "', 'HotelOrderRestrictDate'). $product['name'] .$objModule->l('". Please remove rooms from "', 'HotelOrderRestrictDate'). $product['name'] . $objModule->l('" from cart to proceed.', 'HotelOrderRestrictDate');
+                        $errors[] = $objModule->l('You can not book rooms from "', 'HotelCartBookingData'). $product['name'] .$objModule->l('". Please remove rooms from "', 'HotelCartBookingData'). $product['name'] . $objModule->l('" from cart to proceed.', 'HotelCartBookingData');
                     }
                 }
             }
