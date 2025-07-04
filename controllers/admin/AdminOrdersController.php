@@ -5918,6 +5918,10 @@ class AdminOrdersControllerCore extends AdminController
             $order_detail->total_price_tax_incl += (float)$diff_price_tax_incl;
             $order_detail->total_price_tax_excl += (float)$diff_price_tax_excl;
 
+            $order_detail->unit_price_tax_incl = $order_detail->total_price_tax_incl / ($order_detail->product_quantity + $qty_diff);
+            $order_detail->unit_price_tax_excl = $order_detail->total_price_tax_excl / ($order_detail->product_quantity + $qty_diff);
+
+
             if (isset($order_invoice)) {
                 // Apply changes on OrderInvoice
                 $order_invoice->total_paid_tax_excl += (float)$diff_price_tax_excl;
@@ -6104,11 +6108,13 @@ class AdminOrdersControllerCore extends AdminController
 
                                 $objBookingDemand->save();
 
-                                $order_invoice->total_paid_tax_excl -= $rDemand['total_price_tax_excl'];
-                                $order_invoice->total_paid_tax_incl -= $rDemand['total_price_tax_incl'];
+                                if (isset($order_invoice)) {
+                                    $order_invoice->total_paid_tax_excl -= $rDemand['total_price_tax_excl'];
+                                    $order_invoice->total_paid_tax_incl -= $rDemand['total_price_tax_incl'];
 
-                                $order_invoice->total_paid_tax_excl += (float)$objBookingDemand->total_price_tax_excl;
-                                $order_invoice->total_paid_tax_incl += (float)$objBookingDemand->total_price_tax_incl;
+                                    $order_invoice->total_paid_tax_excl += (float)$objBookingDemand->total_price_tax_excl;
+                                    $order_invoice->total_paid_tax_incl += (float)$objBookingDemand->total_price_tax_incl;
+                                }
                             }
                         }
                     }
@@ -6163,14 +6169,17 @@ class AdminOrdersControllerCore extends AdminController
                                 $oldProductQuantity = $objServiceProductOrderDetail->quantity * $oldNumDays;
                                 $newProductQuantity = $objServiceProductOrderDetail->quantity * $newNumDays;
                                 $objOrderDetail->product_quantity += ($newProductQuantity - $oldProductQuantity);
+
                                 $objOrderDetail->save();
+                                $objOrderDetail->updateTaxAmount($order);
 
-                                $order_invoice->total_paid_tax_excl -= $objServiceProductOrderDetail->total_price_tax_excl;
-                                $order_invoice->total_paid_tax_incl -= $objServiceProductOrderDetail->total_price_tax_incl;
+                                if (isset($order_invoice)) {
+                                    $order_invoice->total_paid_tax_excl -= $objServiceProductOrderDetail->total_price_tax_excl;
+                                    $order_invoice->total_paid_tax_incl -= $objServiceProductOrderDetail->total_price_tax_incl;
 
-                                $order_invoice->total_paid_tax_excl += (float)$newTotalPriceTaxExcl;
-                                $order_invoice->total_paid_tax_incl += (float)$newTotalPriceTaxIncl;
-
+                                    $order_invoice->total_paid_tax_excl += (float)$newTotalPriceTaxExcl;
+                                    $order_invoice->total_paid_tax_incl += (float)$newTotalPriceTaxIncl;
+                                }
                                 $objServiceProductOrderDetail->unit_price_tax_excl = $unitPriceTaxExcl;
                                 $objServiceProductOrderDetail->unit_price_tax_incl = $unitPriceTaxIncl;
                                 $objServiceProductOrderDetail->total_price_tax_excl = $newTotalPriceTaxExcl;
@@ -8768,7 +8777,7 @@ class AdminOrdersControllerCore extends AdminController
                     );
                     if ($objHotelBooking->total_price_tax_excl != $newRoomTotalPrice['total_price_tax_excl']) {
                         $result['has_price_changes'] = 1;
-                        $result['price_diff'] = $newRoomTotalPrice['total_price_tax_excl'] - $objHotelBooking->total_price_tax_excl;
+                        $result['price_diff'] = Tools::ps_round((float) ($newRoomTotalPrice['total_price_tax_excl'] - $objHotelBooking->total_price_tax_excl), _PS_PRICE_COMPUTE_PRECISION_);
                     }
                 }
             } else {
