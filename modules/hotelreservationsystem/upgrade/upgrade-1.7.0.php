@@ -44,8 +44,8 @@ class UpgradeHotelReservationSystem170
     {
         return $this->callInstallTab()
             && $this->updateDefaultConfiguration()
-            && $this->createHotelDefaultBedTypes()
-            && $this->updateTables();
+            && $this->updateTables()
+            && $this->createHotelDefaultBedTypes();
     }
 
     public function callInstallTab()
@@ -297,6 +297,43 @@ class UpgradeHotelReservationSystem170
                 CHANGE COLUMN `use_global_preparation_time` `use_global_min_booking_offset` TINYINT(1) NOT NULL,
                 CHANGE COLUMN `preparation_time` `min_booking_offset` INT(11) NOT NULL,
                 ADD COLUMN `max_checkout_offset` INT(11) NOT NULL AFTER `max_order_date`;",
+
+            "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."htl_bed_type` (
+                `id_bed_type` INT(11) NOT NULL AUTO_INCREMENT,
+                `length` DECIMAL(20,6) NOT NULL DEFAULT '0.000000',
+                `width` DECIMAL(20,6) NOT NULL DEFAULT '0.000000',
+                PRIMARY KEY (`id_bed_type`)
+            ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;",
+
+            "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."htl_bed_type_lang`(
+                `id_bed_type` INT(11) NOT NULL,
+                `name` VARCHAR(255) DEFAULT NULL,
+                `id_lang` INT(11) NOT NULL,
+                PRIMARY KEY (`id_bed_type`, `id_lang`)
+            ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;",
+
+            "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."htl_room_type_bed_type` (
+                `id_room_type_bed_type` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_product` INT(11) NOT NULL,
+                `id_bed_type` INT(11) NOT NULL,
+                PRIMARY KEY (`id_room_type_bed_type`)
+            ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;",
+
+            "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."product_option` (
+                `id_product_option` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `id_product` int(11) UNSIGNED NOT NULL,
+                `price_impact` decimal(20,6) NOT NULL DEFAULT '0.000000',
+                `date_add` datetime NOT NULL,
+                `date_upd` datetime NOT NULL,
+                PRIMARY KEY (`id_product_option`)
+            ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;",
+
+            "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."product_option_lang` (
+                `id_product_option` int(10) unsigned NOT NULL,
+                `id_lang` int(10) unsigned NOT NULL,
+                `name` varchar(255) character set utf8 NOT NULL,
+                PRIMARY KEY (`id_product_option`, `id_lang`)
+            ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;",
         );
 
         $maxCheckoutOffset = Configuration::get('PS_MAX_CHECKOUT_OFFSET');
@@ -320,6 +357,57 @@ class UpgradeHotelReservationSystem170
 
         $sql[] = "ALTER TABLE `"._DB_PREFIX_."htl_order_restrict_date`
             DROP COLUMN `max_order_date`";
+
+        $sql[] = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."htl_room_type_feature_pricing_restriction` (
+            `id_feature_price_restriction` int(11) NOT NULL AUTO_INCREMENT,
+            `id_feature_price` int(11) NOT NULL,
+            `is_special_days_exists` tinyint(1) NOT NULL,
+            `date_selection_type` tinyint(1) NOT NULL,
+            `special_days` text,
+            `date_from` date NOT NULL,
+            `date_to` date NOT NULL,
+            `date_add` datetime NOT NULL,
+            `date_upd` datetime NOT NULL,
+            PRIMARY KEY (`id_feature_price_restriction`)
+        ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;";
+
+        $sql[] = "INSERT INTO `"._DB_PREFIX_."htl_room_type_feature_pricing_restriction`
+            (`id_feature_price`, `is_special_days_exists`, `date_selection_type`, `special_days`, `date_from`, `date_to`, `date_add`, `date_upd`)
+            SELECT `id_feature_price`, `is_special_days_exists`, `date_selection_type`, `special_days`, `date_from`, `date_to`, `date_add`, `date_upd`
+            FROM `"._DB_PREFIX_."htl_room_type_feature_pricing`";
+
+        $sql[] = "ALTER TABLE `"._DB_PREFIX_."htl_room_type_feature_pricing`
+            DROP COLUMN `date_from`,
+            DROP COLUMN `date_to`,
+            DROP COLUMN `is_special_days_exists`,
+            DROP COLUMN `date_selection_type`,
+            DROP COLUMN `special_days`";
+
+        $sql[] = "RENAME TABLE `"._DB_PREFIX_."htl_room_type_service_product_order_detail` TO `"._DB_PREFIX_."service_product_order_detail`;";
+
+        $sql[] = "ALTER TABLE `"._DB_PREFIX_."service_product_order_detail`
+            CHANGE `id_room_type_service_product_order_detail` `id_service_product_order_detail` INT(11) NOT NULL AUTO_INCREMENT;";
+
+        $sql[] = "ALTER TABLE `"._DB_PREFIX_."service_product_order_detail`
+            ADD `id_hotel` INT(11) NOT NULL AFTER `id_cart`,
+            ADD `id_product_option` INT(11) NOT NULL AFTER `id_htl_booking_detail`,
+            ADD `tax_computation_method` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' AFTER `id_product_option`,
+            ADD `id_tax_rules_group` INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER `tax_computation_method`,
+            ADD `option_name` VARCHAR(255) DEFAULT NULL AFTER `name`,
+            ADD `hotel_name` VARCHAR(255) DEFAULT NULL AFTER `option_name`,
+            ADD `is_refunded` TINYINT(1) NOT NULL DEFAULT '0' AFTER `auto_added`,
+            ADD `is_cancelled` TINYINT(1) NOT NULL DEFAULT '0' AFTER `is_refunded`;";
+
+        $sql[] = "RENAME TABLE `"._DB_PREFIX_."htl_room_type_service_product_cart_detail` TO `"._DB_PREFIX_."service_product_cart_detail`;";
+
+        $sql[] = "ALTER TABLE `"._DB_PREFIX_."service_product_cart_detail`
+            CHANGE `id_room_type_service_product_cart_detail` `id_service_product_cart_detail` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT;";
+
+        $sql[] = "ALTER TABLE `"._DB_PREFIX_."service_product_cart_detail`
+            ADD `id_hotel` INT(11) UNSIGNED NOT NULL AFTER `id_cart`,
+            ADD `id_product_option` INT(11) UNSIGNED NOT NULL AFTER `htl_cart_booking_id`;";
+
+        $sql[] = "DROP TABLE IF EXISTS `"._DB_PREFIX_."htl_hotel_service_product_cart_detail`;";
 
         return $sql;
     }
