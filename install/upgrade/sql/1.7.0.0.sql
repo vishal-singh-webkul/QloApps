@@ -53,12 +53,10 @@ ALTER TABLE `PREFIX_customer_thread`
     ADD COLUMN `id_employee` INT(10) UNSIGNED DEFAULT NULL AFTER `id_customer`,
     ADD COLUMN `user_name` VARCHAR(128) DEFAULT NULL AFTER `id_order`,
     ADD COLUMN `phone` VARCHAR(32) DEFAULT NULL AFTER `user_name`,
-    ADD COLUMN `subject` TEXT DEFAULT NULL AFTER `phone`;
-
-ALTER TABLE `PREFIX_customer_thread`
+    ADD COLUMN `subject` TEXT DEFAULT NULL AFTER `phone`,
     ADD COLUMN `status_int` INT(10) NOT NULL DEFAULT 1;
-    UPDATE `PREFIX_customer_thread`
 
+UPDATE `PREFIX_customer_thread`
 SET `status_int` =
     CASE `status`
         WHEN 'open' THEN 1
@@ -76,8 +74,8 @@ ALTER TABLE `PREFIX_order_detail`
     CHANGE COLUMN `product_service_type` `selling_preference_type` TINYINT(1) NOT NULL DEFAULT '1';
 
 ALTER TABLE `PREFIX_order_return_detail`
-    ADD COLUMN `id_service_product_order_detail` INT(10) NOT NULL AFTER `id_htl_booking`
-    KEY `id_service_product_order_detail` (`id_service_product_order_detail`);
+    ADD COLUMN `id_service_product_order_detail` INT(10) NOT NULL AFTER `id_htl_booking`,
+    ADD KEY `id_service_product_order_detail` (`id_service_product_order_detail`);
 
 ALTER TABLE `PREFIX_order_slip_detail`
     DROP PRIMARY KEY,

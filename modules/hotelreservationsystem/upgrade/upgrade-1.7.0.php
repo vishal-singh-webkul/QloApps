@@ -287,7 +287,7 @@ class UpgradeHotelReservationSystem170
                 ADD COLUMN `fax` varchar(255) DEFAULT NULL AFTER `active_refund`;",
 
             "ALTER TABLE `"._DB_PREFIX_."htl_booking_detail`
-                ADD COLUMN `planned_check_out` DATETIME NOT NULL `check_out`;",
+                ADD COLUMN `planned_check_out` DATETIME NOT NULL AFTER `check_out`;",
 
             "UPDATE `"._DB_PREFIX_."htl_booking_detail`
                 SET `planned_check_out` = `date_to`",
